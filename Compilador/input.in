@@ -1,0 +1,20 @@
+inicio programa
+	declaro a, b : int;
+	declaro c, d : text;
+	declaro e, f : float;
+	a -> 2;
+	c -> "hello";
+	emitir[2];
+	emitir[3];
+	se [a > b]{
+		a -> 3;
+		senao{
+			se [c < d]{
+				b -> 4;
+			};
+		};
+	};
+	enquanto [a > 10]{
+		b -> 10;
+	};
+fim
