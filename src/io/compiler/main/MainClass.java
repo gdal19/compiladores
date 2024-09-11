@@ -24,7 +24,8 @@ public class MainClass {
 			System.out.println("Compilação Completada");
 		}
 		catch (Exception ex) {
-			ex.printStackTrace();
+			System.err.println("Erro: " + ex.getMessage());
+			//ex.printStackTrace();
 		}
 		
 	}

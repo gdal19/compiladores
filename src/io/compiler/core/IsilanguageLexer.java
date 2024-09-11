@@ -2,7 +2,9 @@
 package io.compiler.core;
 
 	import java.util.ArrayList;
+	import java.util.HashMap;
 	import io.compiler.types.*;
+	import io.compiler.core.exceptions.*;
 
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
@@ -92,20 +94,27 @@ public class IsilanguageLexer extends Lexer {
 	}
 
 
-		private ArrayList<Var> listaVar = new ArrayList<Var>();
+		private HashMap<String, Var> symbolTable = new HashMap<String, Var>();
 		private ArrayList<Var> declAtual = new ArrayList<Var>();
 		private Types tipoAtual;
+		private Types tipoEsq = null, tipoDir = null;
 		
 		public void atzTipo(){
 			for(Var v: declAtual){
 				v.setType(tipoAtual);
-				listaVar.add(v);
+				symbolTable.put(v.getId(), v);
 			}
 		}
+		
+		
 		public void exibirVar() {
-			for (Var v: listaVar) {
-				System.out.println(v);
+			for (String id: symbolTable.keySet()) {
+				System.out.println(symbolTable.get(id));
 			}
+		}
+		
+		public boolean isDeclared(String id){
+			return symbolTable.get(id) != null;
 		}	
 
 

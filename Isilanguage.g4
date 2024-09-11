@@ -2,24 +2,33 @@ grammar Isilanguage;
 
 @header{
 	import java.util.ArrayList;
+	import java.util.HashMap;
 	import io.compiler.types.*;
+	import io.compiler.core.exceptions.*;
 }
 
 @members{
-	private ArrayList<Var> listaVar = new ArrayList<Var>();
+	private HashMap<String, Var> symbolTable = new HashMap<String, Var>();
 	private ArrayList<Var> declAtual = new ArrayList<Var>();
 	private Types tipoAtual;
+	private Types tipoEsq = null, tipoDir = null;
 	
 	public void atzTipo(){
 		for(Var v: declAtual){
 			v.setType(tipoAtual);
-			listaVar.add(v);
+			symbolTable.put(v.getId(), v);
 		}
 	}
+	
+	
 	public void exibirVar() {
-		for (Var v: listaVar) {
-			System.out.println(v);
+		for (String id: symbolTable.keySet()) {
+			System.out.println(symbolTable.get(id));
 		}
+	}
+	
+	public boolean isDeclared(String id){
+		return symbolTable.get(id) != null;
 	}	
 }
 
@@ -55,17 +64,36 @@ comando     : cmdAtributo
 			
 		
 		
-cmdAtributo : ID IGUAL ( INT | FLOAT | TEXT ) PV 
+cmdAtributo : ID { if (!isDeclared(_input.LT(-1).getText())) {
+						throw new SemanticException("Variavel " + (_input.LT(-1).getText()) + " nao declarada");
+					}
+					symbolTable.get(_input.LT(-1).getText()).setInitialized(true);
+					tipoEsq = symbolTable.get(_input.LT(-1).getText()).getType();
+				}
+			IGUAL exp PV 
+			
+			{ System.out.println("Tipo da expressao na esquerda = "+tipoEsq);
+              System.out.println("Tipo da expressao na direita = "+tipoDir);
+              if (tipoEsq.getValue() < tipoDir.getValue()){
+              	throw new SemanticException("Tipos incompativeis na atribuicao");
+              }
+			}
+			
 			;
 			
 			
 			
-cmdLeitura  : 'ler' AC ID FC PV
+cmdLeitura  : 'ler' AC ID { if (!isDeclared(_input.LT(-1).getText())) {
+						throw new SemanticException("Variavel " + (_input.LT(-1).getText()) + " nao declarada");
+					}
+					symbolTable.get(_input.LT(-1).getText()).setInitialized(true);
+				}
+			 FC PV
 			;
 			
 			
 			
-cmdEscrita  : 'emitir' AC ( termo ) FC PV 
+cmdEscrita  : 'emitir' AC ( termo ) FC PV { tipoDir = null;}
 			;
 			
 			
@@ -93,7 +121,50 @@ exp1        : ((SOMA | SUB) termo)*
 		
 		
 		
-termo   	: fator op2
+termo   	: ID { if (!isDeclared(_input.LT(-1).getText())) {
+						throw new SemanticException("Variavel " + (_input.LT(-1).getText()) + " nao declarada");
+					}
+					if (!symbolTable.get(_input.LT(-1).getText()).isInitialized()){
+						throw new SemanticException("Variavel " + (_input.LT(-1).getText()) + "  nao inicializada");
+					}
+					if (tipoDir == null) {
+						tipoDir = symbolTable.get(_input.LT(-1).getText()).getType();
+					}
+					else {
+						if (symbolTable.get(_input.LT(-1).getText()).getType().getValue() > tipoDir.getValue()) {
+							tipoDir = symbolTable.get(_input.LT(-1).getText()).getType();
+						}
+					}
+				}
+			| INT { if (tipoDir == null) {
+				  		tipoDir = Types.INT;
+				  	}
+				  	else {
+				  		if (tipoDir.getValue() < Types.INT.getValue()) {
+				  			tipoDir = Types.INT;
+				  		}
+				  	}
+				  }
+			
+			| FLOAT { if (tipoDir == null) {
+				  		tipoDir = Types.FLOAT;
+				  	}
+				  	else {
+				  		if (tipoDir.getValue() < Types.FLOAT.getValue()) {
+				  			tipoDir = Types.FLOAT;
+				  		}
+				  	}
+				  }
+			
+			| TEXT { if (tipoDir == null) {
+				  		tipoDir = Types.TEXT;
+				  	}
+				  	else {
+				  		if (tipoDir.getValue() < Types.TEXT.getValue()) {
+				  			tipoDir = Types.TEXT;
+				  		}
+				  	}
+				  }
 			;
 		
 		

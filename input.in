@@ -4,7 +4,8 @@ inicio programa
 	declaro e, f : float;
 	a -> 2;
 	c -> "hello";
-	emitir[2];
+	ler[a];
+	emitir[l];
 	emitir[3];
 	se [a > b]{
 		a -> 3;

@@ -2,7 +2,9 @@
 package io.compiler.core;
 
 	import java.util.ArrayList;
+	import java.util.HashMap;
 	import io.compiler.types.*;
+	import io.compiler.core.exceptions.*;
 
 
 import org.antlr.v4.runtime.ParserRuleContext;
