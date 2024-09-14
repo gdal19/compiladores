@@ -3,8 +3,11 @@ package io.compiler.core;
 
 	import java.util.ArrayList;
 	import java.util.HashMap;
+	import java.util.Stack;
 	import io.compiler.types.*;
 	import io.compiler.core.exceptions.*;
+	import io.compiler.core.ast.*;
+	import io.compiler.runtime.*;
 
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
@@ -94,6 +97,16 @@ public interface IsilanguageListener extends ParseTreeListener {
 	 */
 	void exitCmdWhile(IsilanguageParser.CmdWhileContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link IsilanguageParser#cmdDoWhile}.
+	 * @param ctx the parse tree
+	 */
+	void enterCmdDoWhile(IsilanguageParser.CmdDoWhileContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link IsilanguageParser#cmdDoWhile}.
+	 * @param ctx the parse tree
+	 */
+	void exitCmdDoWhile(IsilanguageParser.CmdDoWhileContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link IsilanguageParser#exp}.
 	 * @param ctx the parse tree
 	 */
@@ -123,24 +136,4 @@ public interface IsilanguageListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitTermo(IsilanguageParser.TermoContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link IsilanguageParser#op2}.
-	 * @param ctx the parse tree
-	 */
-	void enterOp2(IsilanguageParser.Op2Context ctx);
-	/**
-	 * Exit a parse tree produced by {@link IsilanguageParser#op2}.
-	 * @param ctx the parse tree
-	 */
-	void exitOp2(IsilanguageParser.Op2Context ctx);
-	/**
-	 * Enter a parse tree produced by {@link IsilanguageParser#fator}.
-	 * @param ctx the parse tree
-	 */
-	void enterFator(IsilanguageParser.FatorContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link IsilanguageParser#fator}.
-	 * @param ctx the parse tree
-	 */
-	void exitFator(IsilanguageParser.FatorContext ctx);
 }

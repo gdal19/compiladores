@@ -3,15 +3,29 @@ grammar Isilanguage;
 @header{
 	import java.util.ArrayList;
 	import java.util.HashMap;
+	import java.util.Stack;
 	import io.compiler.types.*;
 	import io.compiler.core.exceptions.*;
+	import io.compiler.core.ast.*;
+	import io.compiler.runtime.*;
 }
 
 @members{
 	private HashMap<String, Var> symbolTable = new HashMap<String, Var>();
 	private ArrayList<Var> declAtual = new ArrayList<Var>();
 	private Types tipoAtual;
-	private Types tipoEsq = null, tipoDir = null;
+	private Types tipoEsq = null, tipoDir = null, tipoOpr = null;
+	private Program programa = new Program();
+	private IfCommand comandoAtualIf;
+	private WhileCommand comandoAtualWhile;
+	private DoWhileCommand comandoAtualDoWhile;
+	private String strExpr = "";
+	
+	private Stack<ArrayList<Command>> pilha = new Stack<ArrayList<Command>>(); 
+	private Stack<ArrayList<Command>> pilhaSenao = new Stack<ArrayList<Command>>(); 
+	
+	private Stack<AbstractExpression> pilhaExp = new Stack<AbstractExpression>();
+	private AbstractExpression topo = null; 
 	
 	public void atzTipo(){
 		for(Var v: declAtual){
@@ -27,15 +41,42 @@ grammar Isilanguage;
 		}
 	}
 	
+	
 	public boolean isDeclared(String id){
 		return symbolTable.get(id) != null;
 	}	
+	
+	public Program getProgram(){
+		return this.programa;
+	}
+	
+	public double generateValue(){
+		if (topo == null){
+			topo = pilhaExp.pop();
+		}
+		return topo.evaluate();
+	}
+	
+	public String generateJSON(){
+		if (topo == null){
+			topo = pilhaExp.pop();
+		}
+		return topo.toJson();
+	}
 }
 
-programa	:'inicio' ID 
+programa	:'inicio' ID { programa.setName(_input.LT(-1).getText()); 
+					       pilha.push(new ArrayList<Command>());
+					     }
 			declarar+
-			comando+
-			'fim'
+			comando*
+			'fim' PV
+			
+			{
+				programa.setSymbolTable(symbolTable);
+				programa.setCommandList(pilha.pop());
+			}
+			
 			;
 		
 
@@ -60,6 +101,7 @@ comando     : cmdAtributo
 			| cmdEscrita
 			| cmdIf
 			| cmdWhile
+			| cmdDoWhile
 			;
 			
 		
@@ -87,36 +129,122 @@ cmdLeitura  : 'ler' AC ID { if (!isDeclared(_input.LT(-1).getText())) {
 						throw new SemanticException("Variavel " + (_input.LT(-1).getText()) + " nao declarada");
 					}
 					symbolTable.get(_input.LT(-1).getText()).setInitialized(true);
+					Command cmdRead = new ReadCommand(symbolTable.get(_input.LT(-1).getText()));
+					pilha.peek().add(cmdRead);
 				}
 			 FC PV
 			;
 			
 			
 			
-cmdEscrita  : 'emitir' AC ( termo ) FC PV { tipoDir = null;}
+cmdEscrita  : 'emitir' AC 
+			( termo { Command cmdWrite = new WriteCommand(_input.LT(-1).getText());
+					  pilha.peek().add(cmdWrite);
+					}) 
+			FC PV { tipoDir = null;}
 			;
 			
 			
 			
-cmdIf       : 'se' AC exp OPREL exp FC ACH
+cmdIf       : 'se' { pilha.push(new ArrayList<Command>());
+				   	 strExpr = "";
+				   	 comandoAtualIf = new IfCommand();
+				   }
+			AC exp 
+			OPREL
+			{strExpr += _input.LT(-1).getText();} 
+			exp FC 
+			{comandoAtualIf.setExpression(strExpr);}
+			ACH
 			comando+ 
-			('senao' ACH (comando+)* FCH PV)?
-			FCH PV
+			{comandoAtualIf.setTrueList(pilha.pop());
+			}
+			('senao' 
+			{pilha.push(new ArrayList<Command>());}
+			ACH 
+			comando+ 
+			{ 
+			comandoAtualIf.setFalseList(pilha.pop());
+			} 
+			FCH PV)?
+			FCH
+			PV 
+			{ pilha.peek().add(comandoAtualIf); }
+			;
+					
+	
+cmdWhile	: 'enquanto' 
+			{ pilha.push(new ArrayList<Command>());
+				strExpr = "";
+				comandoAtualWhile = new WhileCommand();
+			}
+			AC exp 
+			OPREL {strExpr += _input.LT(-1).getText();} 
+			exp FC {comandoAtualWhile.setExpression(strExpr);}
+			ACH
+			comando+ 
+			{comandoAtualWhile.setTrueList(pilha.pop());
+			}
+			FCH PV	{ pilha.peek().add(comandoAtualWhile); }
 			;
 			
-	
-cmdWhile	: 'enquanto' AC exp OPREL exp FC ACH
-			comando+
-			FCH PV	
+
+cmdDoWhile	:'faca'
+			{ pilha.push(new ArrayList<Command>());
+				strExpr = "";
+				comandoAtualDoWhile = new DoWhileCommand();
+			}
+			ACH 
+			comando+ 
+			{comandoAtualDoWhile.setTrueList(pilha.pop());
+			}
+			FCH
+			'enquanto' AC exp 
+			OPREL {strExpr += _input.LT(-1).getText();} 
+			exp 
+			FC {comandoAtualDoWhile.setExpression(strExpr);}
+			PV	{ pilha.peek().add(comandoAtualDoWhile); }
 			;
 		
 		
-exp 		: termo exp1
+exp 		: termo {strExpr += _input.LT(-1).getText(); } exp1
 			;
 			
 				
 
-exp1        : ((SOMA | SUB) termo)*
+exp1        : (OP {	    strExpr += _input.LT(-1).getText();
+					    BinaryExpression bin = new BinaryExpression(_input.LT(-1).getText().charAt(0));
+						if (_input.LT(-1).getText().charAt(0) == '*' || _input.LT(-1).getText().charAt(0) == '/') {
+						    if (pilhaExp.peek() instanceof UnaryExpression) {
+						        bin.setLeft(pilhaExp.pop());
+						        pilhaExp.push(bin);
+						    } else {
+						        BinaryExpression father = (BinaryExpression)pilhaExp.pop();
+						        if (father.getOperation() == '+' || father.getOperation() == '-') {
+						            BinaryExpression temp = new BinaryExpression(_input.LT(-1).getText().charAt(0));
+						            
+						            temp.setLeft(father);
+						            
+						            father.setRight(temp);
+						            
+						            pilhaExp.push(father);
+						        } else {
+						            bin.setLeft(father);
+						            pilhaExp.push(bin);
+						        }
+						    }
+						} else {
+						    bin.setLeft(pilhaExp.pop());
+						    pilhaExp.push(bin);
+						}
+				}
+			  termo {strExpr += _input.LT(-1).getText();
+			  		 AbstractExpression topo = pilhaExp.pop();
+			  		 BinaryExpression root = (BinaryExpression) pilhaExp.pop();
+			  		 root.setRight(topo);
+			  		 pilhaExp.push(root);
+			  		}
+				)*
 			;
 		
 		
@@ -144,6 +272,8 @@ termo   	: ID { if (!isDeclared(_input.LT(-1).getText())) {
 				  			tipoDir = Types.INT;
 				  		}
 				  	}
+				  	UnaryExpression element = new UnaryExpression(Double.parseDouble(_input.LT(-1).getText()));
+                 	pilhaExp.push(element);
 				  }
 			
 			| FLOAT { if (tipoDir == null) {
@@ -154,6 +284,8 @@ termo   	: ID { if (!isDeclared(_input.LT(-1).getText())) {
 				  			tipoDir = Types.FLOAT;
 				  		}
 				  	}
+				  	UnaryExpression element = new UnaryExpression(Double.parseDouble(_input.LT(-1).getText()));
+                 	pilhaExp.push(element);
 				  }
 			
 			| TEXT { if (tipoDir == null) {
@@ -168,16 +300,6 @@ termo   	: ID { if (!isDeclared(_input.LT(-1).getText())) {
 			;
 		
 		
-
-op2     	: ((DIV | MULT) fator)*
-			;
-		
-		
-		
-fator   	: ID | INT | FLOAT | TEXT
-			;
-		
-		
 ID      	: [a-z] ( [a-z] | [A-Z] | [0-9] )*		
 			;
 		
@@ -187,25 +309,9 @@ PV      	: ';'
 		
 		
 		
-SOMA    	: '+'
-			;
-		
-		
-
-SUB     	: '-'
-			;
-		
-		
-
-DIV     	: '/'
-			;
-		
-		
-		
-MULT    	: '*'
-			;
-		
-		
+OP       	: '+' | '-' | '/' | '*'
+			;		
+					
 		
 DP      	: ':'
 			;

@@ -3,8 +3,11 @@ package io.compiler.core;
 
 	import java.util.ArrayList;
 	import java.util.HashMap;
+	import java.util.Stack;
 	import io.compiler.types.*;
 	import io.compiler.core.exceptions.*;
+	import io.compiler.core.ast.*;
+	import io.compiler.runtime.*;
 
 
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -119,6 +122,18 @@ public class IsilanguageBaseListener implements IsilanguageListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterCmdDoWhile(IsilanguageParser.CmdDoWhileContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitCmdDoWhile(IsilanguageParser.CmdDoWhileContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterExp(IsilanguageParser.ExpContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -150,30 +165,6 @@ public class IsilanguageBaseListener implements IsilanguageListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitTermo(IsilanguageParser.TermoContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterOp2(IsilanguageParser.Op2Context ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitOp2(IsilanguageParser.Op2Context ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterFator(IsilanguageParser.FatorContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitFator(IsilanguageParser.FatorContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
