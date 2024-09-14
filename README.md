@@ -9,7 +9,7 @@ Elton Silva 11201810955
 
  feature | check
 --------------------|--------------------|
-1 Possui 2 tipos de variáveis | <ul><li>[x]
+1 Possui 2 tipos de variáveis | <ul><li>-[x]
 2 Possui a estrutura If.. else |<ul><li>[x]
 3 Possui estrutura de controle while/do while |<ul><li>[x]
 4 Operações Aritméticas executadas corretamente |<ul><li>[x]
