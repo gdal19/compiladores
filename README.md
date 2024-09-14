@@ -7,7 +7,7 @@ Guilherme Daltrino Teodoro 11201920867
 Matheus Cardoso 11201822485
 Elton Silva 11201810955
 
- | 
+ feature | check
 --------------------|--------------------|
 1 Possui 2 tipos de variáveis | - [x]
 --------------------|--------------------|
