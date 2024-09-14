@@ -10,11 +10,8 @@ Elton Silva 11201810955
  feature | check
 --------------------|--------------------|
 1 Possui 2 tipos de variáveis | - [x]
---------------------|--------------------|
 2 Possui a estrutura If.. else |- [x]
---------------------|--------------------|
 3 Possui estrutura de controle while/do while | - [x]
---------------------|--------------------|
 4 Operações Aritméticas executadas corretamente | - [x]
 --------------------|--------------------|
 5 Atribuições realizadas corretamente | - [x]
