@@ -3,8 +3,8 @@ Projeto de Compiladores Q2/24
 
 Membros:
 
-Guilherme Daltrino Teodoro 11201920867
-Matheus Cardoso 11201822485
+Guilherme Daltrino Teodoro 11201920867\
+Matheus Cardoso 11201822485\
 Elton Silva 11201810955
 
  feature | check
